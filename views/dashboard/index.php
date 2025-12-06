@@ -112,17 +112,17 @@ include __DIR__ . '/../../includes/navigation.php';
         <div class="dashboard-section">
             <h2>Quick Actions</h2>
             <div class="quick-actions">
-                <a href="<?php echo getBaseUrl(); ?>admin/users.php" class="action-card">
+                <a href="<?php echo getBaseUrl(); ?>admin_users.php" class="action-card">
                     <i class="fas fa-user-plus"></i>
                     <h3>Manage Users</h3>
                     <p>Create, edit, or delete user accounts</p>
                 </a>
-                <a href="<?php echo getBaseUrl(); ?>admin/reports.php" class="action-card">
+                <a href="<?php echo getBaseUrl(); ?>admin_reports.php" class="action-card">
                     <i class="fas fa-chart-bar"></i>
                     <h3>View Reports</h3>
                     <p>System reports and analytics</p>
                 </a>
-                <a href="<?php echo getBaseUrl(); ?>admin/activity_logs.php" class="action-card">
+                <a href="<?php echo getBaseUrl(); ?>admin_activity_logs.php" class="action-card">
                     <i class="fas fa-history"></i>
                     <h3>Activity Logs</h3>
                     <p>View system activity and transactions</p>
@@ -150,12 +150,12 @@ include __DIR__ . '/../../includes/navigation.php';
         <div class="dashboard-section">
             <h2>Quick Actions</h2>
             <div class="quick-actions">
-                <a href="<?php echo getBaseUrl(); ?>doctor/requests.php" class="action-card">
+                <a href="<?php echo getBaseUrl(); ?>doctor_requests.php" class="action-card">
                     <i class="fas fa-plus-circle"></i>
                     <h3>Request Items</h3>
                     <p>Request medicines or equipment</p>
                 </a>
-                <a href="<?php echo getBaseUrl(); ?>doctor/request_history.php" class="action-card">
+                <a href="<?php echo getBaseUrl(); ?>doctor_request_history.php" class="action-card">
                     <i class="fas fa-list"></i>
                     <h3>Request History</h3>
                     <p>View your request history</p>

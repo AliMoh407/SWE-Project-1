@@ -109,13 +109,6 @@ function getBaseUrl() {
     $script = $_SERVER['SCRIPT_NAME'];
     $path = dirname($script);
     
-    // If we're in a subdirectory, we need to go up one level
-    if (strpos($script, '/admin/') !== false || 
-        strpos($script, '/doctor/') !== false || 
-        strpos($script, '/pharmacist/') !== false) {
-        $path = dirname($path);
-    }
-    
     // Ensure path ends with /
     if ($path !== '/' && substr($path, -1) !== '/') {
         $path .= '/';

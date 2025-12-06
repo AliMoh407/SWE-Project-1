@@ -119,7 +119,7 @@ include __DIR__ . '/../../includes/navigation.php';
                 
                 <?php if ($notification['type'] === 'low_stock' || $notification['type'] === 'expiry'): ?>
                 <div class="notification-actions">
-                    <a href="<?php echo getBaseUrl(); ?>pharmacist/inventory.php" class="btn btn-sm btn-primary">
+                    <a href="<?php echo getBaseUrl(); ?>pharmacist_inventory.php" class="btn btn-sm btn-primary">
                         <i class="fas fa-eye"></i> View Item
                     </a>
                     <button class="btn btn-sm btn-secondary" onclick="showAlternatives(<?php echo $notification['item_id']; ?>)">
@@ -147,13 +147,13 @@ include __DIR__ . '/../../includes/navigation.php';
     <div class="quick-actions-section">
         <h2>Quick Actions</h2>
         <div class="quick-actions">
-            <a href="<?php echo getBaseUrl(); ?>pharmacist/inventory.php?status=low_stock" class="action-card">
+            <a href="<?php echo getBaseUrl(); ?>pharmacist_inventory.php?status=low_stock" class="action-card">
                 <i class="fas fa-exclamation-triangle"></i>
                 <h3>View Low Stock Items</h3>
                 <p>Check all items with low inventory</p>
             </a>
             
-            <a href="<?php echo getBaseUrl(); ?>pharmacist/inventory.php?status=expiring_soon" class="action-card">
+            <a href="<?php echo getBaseUrl(); ?>pharmacist_inventory.php?status=expiring_soon" class="action-card">
                 <i class="fas fa-clock"></i>
                 <h3>View Expiring Items</h3>
                 <p>Items expiring in the next 30 days</p>

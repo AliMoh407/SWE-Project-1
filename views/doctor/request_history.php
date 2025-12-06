@@ -7,7 +7,7 @@ include __DIR__ . '/../../includes/navigation.php';
     <div class="page-header">
         <h1>Request History</h1>
         <div class="page-actions">
-            <a href="<?php echo getBaseUrl(); ?>doctor/requests.php" class="btn btn-primary">
+            <a href="<?php echo getBaseUrl(); ?>doctor_requests.php" class="btn btn-primary">
                 <i class="fas fa-plus"></i> New Request
             </a>
         </div>
@@ -83,7 +83,7 @@ include __DIR__ . '/../../includes/navigation.php';
                 <i class="fas fa-filter"></i> Filter
             </button>
             
-            <a href="<?php echo getBaseUrl(); ?>doctor/request_history.php" class="btn btn-outline">
+            <a href="<?php echo getBaseUrl(); ?>doctor_request_history.php" class="btn btn-outline">
                 <i class="fas fa-times"></i> Clear
             </a>
         </form>
