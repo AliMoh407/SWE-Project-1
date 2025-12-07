@@ -199,7 +199,7 @@ include __DIR__ . '/../../includes/navigation.php';
 
 <script>
 // Make inventory data available to JavaScript
-const inventoryData = <?php echo json_encode($inventory); ?>;
+window.inventoryData = <?php echo json_encode($inventory ?? []); ?>;
 </script>
 
 <?php 

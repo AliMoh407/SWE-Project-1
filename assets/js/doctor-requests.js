@@ -9,6 +9,15 @@ document.addEventListener('DOMContentLoaded', function() {
 function initializeDoctorRequests() {
     console.log('Doctor requests initialized');
     
+    // Load inventory data if available
+    if (typeof window.inventoryData !== 'undefined') {
+        inventoryData = window.inventoryData;
+    } else {
+        inventoryData = [];
+    }
+    
+    console.log('Inventory data loaded:', inventoryData.length, 'items');
+    
     // Initialize search functionality
     const itemSearch = document.getElementById('item_search');
     if (itemSearch) {
@@ -19,11 +28,6 @@ function initializeDoctorRequests() {
     const availabilitySearch = document.getElementById('availability_search');
     if (availabilitySearch) {
         availabilitySearch.addEventListener('input', handleAvailabilitySearch);
-    }
-    
-    // Load inventory data if available
-    if (typeof inventoryData !== 'undefined') {
-        inventoryData = window.inventoryData || [];
     }
 }
 
@@ -65,15 +69,33 @@ function handleItemSearch(event) {
 
 function selectItem(itemId) {
     const item = inventoryData.find(i => i.id == itemId);
-    if (!item) return;
+    if (!item) {
+        console.error('Item not found:', itemId);
+        showAlert('Item not found. Please try again.', 'error');
+        return;
+    }
     
     // Update form fields
-    document.getElementById('selected_item').value = item.name;
-    document.getElementById('item_id').value = item.id;
+    const selectedItemInput = document.getElementById('selected_item');
+    const itemIdInput = document.getElementById('item_id');
+    
+    if (selectedItemInput) {
+        selectedItemInput.value = item.name;
+    }
+    if (itemIdInput) {
+        itemIdInput.value = item.id;
+        console.log('Item selected:', item.name, 'ID:', item.id);
+    }
     
     // Hide search results
-    document.getElementById('search_results').style.display = 'none';
-    document.getElementById('item_search').value = '';
+    const searchResults = document.getElementById('search_results');
+    if (searchResults) {
+        searchResults.style.display = 'none';
+    }
+    const itemSearch = document.getElementById('item_search');
+    if (itemSearch) {
+        itemSearch.value = '';
+    }
     
     // Check if item is controlled
     if (item.controlled) {
@@ -165,35 +187,54 @@ function validateRequestForm(form) {
     const patientName = form.querySelector('input[name="patient_name"]');
     
     let isValid = true;
+    const errors = [];
     
     // Validate item selection
-    if (!itemId.value) {
-        showAlert('Please select an item from the search results', 'error');
+    if (!itemId || !itemId.value || itemId.value.trim() === '') {
+        errors.push('Please select an item from the search results');
         isValid = false;
+        if (itemId) {
+            showFieldError(itemId, 'Please select an item');
+        }
+    } else {
+        if (itemId) clearFieldError(itemId);
     }
     
     // Validate quantity
-    if (!quantity.value || quantity.value <= 0) {
-        showFieldError(quantity, 'Please enter a valid quantity');
+    if (!quantity || !quantity.value || parseInt(quantity.value) <= 0) {
+        errors.push('Please enter a valid quantity');
         isValid = false;
+        if (quantity) {
+            showFieldError(quantity, 'Please enter a valid quantity (greater than 0)');
+        }
     } else {
-        clearFieldError(quantity);
+        if (quantity) clearFieldError(quantity);
     }
     
     // Validate patient ID
-    if (!patientId.value.trim()) {
-        showFieldError(patientId, 'Patient ID is required');
+    if (!patientId || !patientId.value.trim()) {
+        errors.push('Patient ID is required');
         isValid = false;
+        if (patientId) {
+            showFieldError(patientId, 'Patient ID is required');
+        }
     } else {
-        clearFieldError(patientId);
+        if (patientId) clearFieldError(patientId);
     }
     
     // Validate patient name
-    if (!patientName.value.trim()) {
-        showFieldError(patientName, 'Patient name is required');
+    if (!patientName || !patientName.value.trim()) {
+        errors.push('Patient name is required');
         isValid = false;
+        if (patientName) {
+            showFieldError(patientName, 'Patient name is required');
+        }
     } else {
-        clearFieldError(patientName);
+        if (patientName) clearFieldError(patientName);
+    }
+    
+    if (!isValid && errors.length > 0) {
+        showAlert(errors.join('. '), 'error');
     }
     
     return isValid;
@@ -205,17 +246,16 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (requestForm) {
         requestForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+            // Only prevent default if validation fails
+            if (!validateRequestForm(this)) {
+                e.preventDefault();
+                return false;
+            }
             
-            if (validateRequestForm(this)) {
-                const submitBtn = this.querySelector('button[type="submit"]');
+            // If validation passes, allow form to submit normally
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
                 showLoading(submitBtn);
-                
-                // Simulate API call
-                setTimeout(() => {
-                    hideLoading(submitBtn);
-                    this.submit();
-                }, 1000);
             }
         });
     }
