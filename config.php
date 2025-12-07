@@ -69,7 +69,7 @@ function hasRole($role) {
 }
 
 function redirectToLogin() {
-    header('Location: login.php');
+    header('Location: ' . getBaseUrl() . 'login.php');
     exit();
 }
 
@@ -82,7 +82,7 @@ function requireLogin() {
 function requireRole($role) {
     requireLogin();
     if (!hasRole($role)) {
-        header('Location: dashboard.php');
+        header('Location: ' . getBaseUrl() . 'routes/dashboard.php');
         exit();
     }
 }
@@ -107,7 +107,18 @@ function getBaseUrl() {
     $protocol = isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? 'https' : 'http';
     $host = $_SERVER['HTTP_HOST'];
     $script = $_SERVER['SCRIPT_NAME'];
-    $path = dirname($script);
+    
+    // Get the directory of the script
+    $scriptDir = dirname($script);
+    
+    // Remove 'routes' or any subdirectory from the path to get project root
+    // Example: /SWE Project 1/routes/dashboard.php -> /SWE Project 1/
+    $path = $scriptDir;
+    
+    // If path contains '/routes', remove it to get back to project root
+    if (strpos($path, '/routes') !== false) {
+        $path = str_replace('/routes', '', $path);
+    }
     
     // Ensure path ends with /
     if ($path !== '/' && substr($path, -1) !== '/') {

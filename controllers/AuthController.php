@@ -24,7 +24,7 @@ class AuthController
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
-                header('Location: dashboard.php');
+                header('Location: ' . getBaseUrl() . 'routes/dashboard.php');
                 exit();
             } else {
                 $error_message = 'Invalid username or password';

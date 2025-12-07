@@ -86,7 +86,7 @@ include __DIR__ . '/../../includes/navigation.php';
                 <i class="fas fa-filter"></i> Filter
             </button>
             
-            <a href="<?php echo getBaseUrl(); ?>pharmacist_inventory.php" class="btn btn-outline">
+            <a href="<?php echo getBaseUrl(); ?>routes/pharmacist_inventory.php" class="btn btn-outline">
                 <i class="fas fa-times"></i> Clear
             </a>
         </form>
