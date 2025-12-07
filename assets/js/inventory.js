@@ -69,12 +69,39 @@ function showItemDetails(item) {
 
 function showStockAdjustmentModal(itemId, itemName) {
     document.getElementById('adjust_item_id').value = itemId;
-    document.getElementById('adjust_item_name').textContent = itemName;
+    const itemNameElement = document.getElementById('adjust_item_name');
+    if (itemNameElement) {
+        itemNameElement.textContent = itemName;
+    }
     
     // Get current stock from table
     const tableRow = document.querySelector(`tr[data-item-id="${itemId}"]`);
-    const currentStock = tableRow ? tableRow.querySelector('.stock-amount').textContent : '0';
-    document.getElementById('current_stock_amount').textContent = currentStock;
+    let currentStock = '0';
+    
+    if (tableRow) {
+        const stockCell = tableRow.querySelector('.stock-amount');
+        if (stockCell) {
+            currentStock = stockCell.textContent.trim();
+        } else {
+            // Fallback: try to get from the stock column (3rd column)
+            const stockTd = tableRow.querySelector('td:nth-child(3)');
+            if (stockTd) {
+                currentStock = stockTd.textContent.trim();
+            }
+        }
+    }
+    
+    const currentStockElement = document.getElementById('current_stock_amount');
+    if (currentStockElement) {
+        currentStockElement.textContent = currentStock;
+    }
+    
+    // Reset form
+    const form = document.querySelector('#stockAdjustmentModal form');
+    if (form) {
+        form.reset();
+        document.getElementById('adjust_item_id').value = itemId;
+    }
     
     showModal('stockAdjustmentModal');
 }
@@ -156,75 +183,79 @@ document.addEventListener('DOMContentLoaded', function() {
     
     if (addForm) {
         addForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+            if (!validateItemForm(this)) {
+                e.preventDefault();
+                return false;
+            }
             
-            if (validateItemForm(this)) {
-                showLoading(this.querySelector('button[type="submit"]'));
-                
-                // Simulate API call
-                setTimeout(() => {
-                    hideLoading(this.querySelector('button[type="submit"]'));
-                    this.submit();
-                }, 1000);
+            // If validation passes, allow form to submit normally
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                showLoading(submitBtn);
             }
         });
     }
     
     if (editForm) {
         editForm.addEventListener('submit', function(e) {
-            e.preventDefault();
+            if (!validateItemForm(this)) {
+                e.preventDefault();
+                return false;
+            }
             
-            if (validateItemForm(this)) {
-                showLoading(this.querySelector('button[type="submit"]'));
-                
-                // Simulate API call
-                setTimeout(() => {
-                    hideLoading(this.querySelector('button[type="submit"]'));
-                    this.submit();
-                }, 1000);
+            // If validation passes, allow form to submit normally
+            const submitBtn = this.querySelector('button[type="submit"]');
+            if (submitBtn) {
+                showLoading(submitBtn);
             }
         });
     }
     
     if (adjustmentForm) {
         adjustmentForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
             const adjustmentType = this.querySelector('select[name="adjustment_type"]');
             const amount = this.querySelector('input[name="amount"]');
             const reason = this.querySelector('textarea[name="reason"]');
             
             let isValid = true;
             
-            if (!adjustmentType.value) {
-                showFieldError(adjustmentType, 'Please select adjustment type');
+            if (!adjustmentType || !adjustmentType.value) {
+                e.preventDefault();
+                if (adjustmentType) {
+                    showFieldError(adjustmentType, 'Please select adjustment type');
+                }
                 isValid = false;
             } else {
-                clearFieldError(adjustmentType);
+                if (adjustmentType) clearFieldError(adjustmentType);
             }
             
-            if (!amount.value || amount.value < 0) {
-                showFieldError(amount, 'Amount must be a positive number');
+            if (!amount || !amount.value || parseFloat(amount.value) <= 0) {
+                e.preventDefault();
+                if (amount) {
+                    showFieldError(amount, 'Amount must be a positive number');
+                }
                 isValid = false;
             } else {
-                clearFieldError(amount);
+                if (amount) clearFieldError(amount);
             }
             
-            if (!reason.value.trim()) {
-                showFieldError(reason, 'Reason is required');
+            // Reason is optional, but let's make it required for audit purposes
+            if (!reason || !reason.value.trim()) {
+                e.preventDefault();
+                if (reason) {
+                    showFieldError(reason, 'Reason is required for stock adjustments');
+                }
                 isValid = false;
             } else {
-                clearFieldError(reason);
+                if (reason) clearFieldError(reason);
             }
             
+            // If validation passes, allow form to submit normally
             if (isValid) {
-                showLoading(this.querySelector('button[type="submit"]'));
-                
-                // Simulate API call
-                setTimeout(() => {
-                    hideLoading(this.querySelector('button[type="submit"]'));
-                    this.submit();
-                }, 1000);
+                const submitBtn = this.querySelector('button[type="submit"]');
+                if (submitBtn) {
+                    showLoading(submitBtn);
+                }
             }
         });
     }

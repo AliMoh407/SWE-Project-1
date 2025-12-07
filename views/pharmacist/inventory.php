@@ -13,6 +13,13 @@ include __DIR__ . '/../../includes/navigation.php';
         </div>
     </div>
     
+    <?php if (!empty($message)): ?>
+    <div class="alert alert-<?php echo $message_type; ?>">
+        <i class="fas fa-<?php echo $message_type === 'success' ? 'check-circle' : 'exclamation-circle'; ?>"></i>
+        <?php echo htmlspecialchars($message); ?>
+    </div>
+    <?php endif; ?>
+    
     <!-- Quick Stats -->
     <div class="stats-overview">
         <div class="stat-card">
@@ -109,7 +116,7 @@ include __DIR__ . '/../../includes/navigation.php';
             </thead>
             <tbody>
                 <?php foreach ($filtered_inventory as $item): ?>
-                <tr class="<?php echo isLowStock($item) ? 'low-stock-row' : ''; ?>">
+                <tr class="<?php echo isLowStock($item) ? 'low-stock-row' : ''; ?>" data-item-id="<?php echo $item['id']; ?>">
                     <td>
                         <div class="item-info">
                             <strong><?php echo htmlspecialchars($item['name']); ?></strong>
