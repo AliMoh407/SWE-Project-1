@@ -2,6 +2,13 @@
 
 let inventoryData = [];
 
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     initializeDoctorRequests();
 });
@@ -22,7 +29,21 @@ function initializeDoctorRequests() {
     const itemSearch = document.getElementById('item_search');
     if (itemSearch) {
         itemSearch.addEventListener('input', handleItemSearch);
+        itemSearch.addEventListener('focus', function() {
+            if (this.value.length >= 2) {
+                handleItemSearch({ target: this });
+            }
+        });
     }
+    
+    // Close search results when clicking outside
+    document.addEventListener('click', function(e) {
+        const searchContainer = document.querySelector('.form-group');
+        const searchResults = document.getElementById('search_results');
+        if (searchContainer && searchResults && !searchContainer.contains(e.target)) {
+            searchResults.style.display = 'none';
+        }
+    });
     
     // Initialize availability search
     const availabilitySearch = document.getElementById('availability_search');
@@ -47,18 +68,20 @@ function handleItemSearch(event) {
     );
     
     if (filteredItems.length === 0) {
-        resultsContainer.innerHTML = '<div class="no-results">No items found</div>';
+        resultsContainer.innerHTML = '<div class="no-results"><i class="fas fa-search"></i><p>No items found matching your search</p></div>';
         resultsContainer.style.display = 'block';
         return;
     }
     
     const resultsHTML = filteredItems.map(item => `
         <div class="search-result-item" onclick="selectItem(${item.id})">
-            <div class="item-name">${item.name}</div>
+            <div class="item-name">${escapeHtml(item.name)}</div>
             <div class="item-details">
-                <span class="item-category">${item.category}</span>
-                <span class="item-stock ${item.stock <= item.min_stock ? 'low-stock' : 'normal-stock'}">Stock: ${item.stock}</span>
-                ${item.controlled ? '<span class="controlled-badge">Controlled</span>' : ''}
+                <span class="item-category">${escapeHtml(item.category)}</span>
+                <span class="item-stock ${item.stock <= item.min_stock ? 'low-stock' : 'normal-stock'}">
+                    <i class="fas fa-box"></i> Stock: ${item.stock}
+                </span>
+                ${item.controlled ? '<span class="controlled-badge"><i class="fas fa-shield-alt"></i> Controlled</span>' : ''}
             </div>
         </div>
     `).join('');
@@ -371,6 +394,10 @@ function cancelRequest(requestId) {
 
 // Add CSS for doctor requests
 const doctorRequestsStyles = `
+.form-group {
+    position: relative;
+}
+
 .search-results {
     position: absolute;
     top: 100%;
@@ -380,21 +407,27 @@ const doctorRequestsStyles = `
     border: 1px solid #ddd;
     border-top: none;
     border-radius: 0 0 5px 5px;
-    max-height: 200px;
+    max-height: 300px;
     overflow-y: auto;
     z-index: 1000;
-    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    margin-top: -1px;
 }
 
 .search-result-item {
-    padding: 0.75rem;
+    padding: 1rem;
     cursor: pointer;
     border-bottom: 1px solid #f0f0f0;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
 }
 
 .search-result-item:hover {
     background: #f8f9fa;
+    border-left: 3px solid #667eea;
+    padding-left: calc(1rem - 3px);
 }
 
 .search-result-item:last-child {
@@ -402,16 +435,89 @@ const doctorRequestsStyles = `
 }
 
 .item-name {
-    font-weight: 500;
+    font-weight: 600;
     color: #333;
-    margin-bottom: 0.25rem;
+    font-size: 1rem;
+    margin: 0;
+    line-height: 1.4;
 }
 
 .item-details {
     display: flex;
-    gap: 0.5rem;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    align-items: center;
     font-size: 0.875rem;
     color: #666;
+}
+
+.item-category {
+    background: #e9ecef;
+    color: #495057;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-weight: 500;
+    font-size: 0.8rem;
+    white-space: nowrap;
+}
+
+.item-stock {
+    font-weight: 600;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+}
+
+.item-stock.low-stock {
+    color: #721c24;
+    background: #f8d7da;
+}
+
+.item-stock.normal-stock {
+    color: #155724;
+    background: #d4edda;
+}
+
+.item-stock i {
+    font-size: 0.75rem;
+}
+
+.controlled-badge {
+    background: #fff3cd;
+    color: #856404;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    white-space: nowrap;
+}
+
+.controlled-badge i {
+    font-size: 0.7rem;
+}
+
+.no-results {
+    padding: 2rem 1rem;
+    text-align: center;
+    color: #666;
+}
+
+.no-results i {
+    font-size: 2rem;
+    color: #ccc;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.no-results p {
+    margin: 0;
+    font-style: italic;
 }
 
 .availability-item {
@@ -455,13 +561,6 @@ const doctorRequestsStyles = `
 .unavailable {
     color: #dc3545;
     font-weight: 500;
-}
-
-.no-results {
-    padding: 1rem;
-    text-align: center;
-    color: #666;
-    font-style: italic;
 }
 
 .request-form-container {
