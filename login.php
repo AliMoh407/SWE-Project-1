@@ -1,7 +1,7 @@
 <?php
 require_once 'config.php';
-require_once __DIR__ . '/controllers/AuthController.php';
 
-// Delegate request handling to the AuthController (MVC)
-$controller = new AuthController($userModel);
+// Use Factory Pattern to create controller
+$factory = ControllerFactory::getInstance();
+$controller = $factory->create('login');
 $controller->login();

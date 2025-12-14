@@ -1,0 +1,81 @@
+@startuml Singleton Pattern - Database Connection
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "core/Database.php" {
+    
+    class Database {
+        -{static} instance: Database
+        -connection: mysqli
+        -host: string
+        -user: string
+        -password: string
+        -database: string
+        --
+        -__construct()
+        -__clone()
+        +__wakeup()
+        +{static} getInstance(): Database
+        -connect(): void
+        +getConnection(): mysqli
+        +close(): void
+        +{static} reset(): void
+    }
+    
+    note right of Database
+        **Singleton Pattern**
+        
+        Ensures only one database
+        connection exists throughout
+        the application.
+        
+        **Key Features:**
+        - Private constructor prevents
+          direct instantiation
+        - Static getInstance() method
+          returns single instance
+        - __clone() prevents cloning
+        - __wakeup() prevents
+          unserialization
+    end note
+}
+
+package "config.php" {
+    class Config {
+        +initialize(): void
+        --
+        Uses Database::getInstance()
+        to get connection
+    }
+    
+    Config ..> Database : uses getInstance()
+}
+
+package "Models" {
+    class UserModel {
+        -conn: mysqli
+        +__construct(conn: mysqli)
+    }
+    
+    class InventoryModel {
+        -conn: mysqli
+        +__construct(conn: mysqli)
+    }
+    
+    UserModel ..> Database : uses getConnection()
+    InventoryModel ..> Database : uses getConnection()
+}
+
+note bottom of Database
+    **Usage Example:**
+    
+    $db = Database::getInstance();
+    $conn = $db->getConnection();
+    
+    Multiple calls to getInstance()
+    return the same instance.
+end note
+
+@enduml
+

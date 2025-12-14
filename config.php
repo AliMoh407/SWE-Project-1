@@ -6,18 +6,15 @@ define('ROLE_ADMIN', 'admin');
 define('ROLE_DOCTOR', 'doctor');
 define('ROLE_PHARMACIST', 'pharmacist');
 
-// ===== Database connection (MySQL / phpMyAdmin) =====
-// Change these values to match your database in phpMyAdmin
-$DB_HOST = 'localhost';      // usually 'localhost' on XAMPP
-$DB_USER = 'root';           // default XAMPP user
-$DB_PASS = '';               // default XAMPP password is empty
-$DB_NAME = 'meditrack';      // TODO: change to your database name
+// ===== Load Core Classes =====
+require_once __DIR__ . '/core/Database.php';
+require_once __DIR__ . '/core/ControllerFactory.php';
+require_once __DIR__ . '/core/RoleStrategy.php';
+require_once __DIR__ . '/core/Observer.php';
 
-$conn = new mysqli($DB_HOST, $DB_USER, $DB_PASS, $DB_NAME);
-
-if ($conn->connect_error) {
-    die('Database connection failed: ' . $conn->connect_error);
-}
+// ===== Database connection using Singleton Pattern =====
+$db = Database::getInstance();
+$conn = $db->getConnection();
 
 // ===== Models (OOP layer) =====
 require_once __DIR__ . '/models/User.php';
@@ -26,12 +23,18 @@ require_once __DIR__ . '/models/ActivityLog.php';
 require_once __DIR__ . '/models/Request.php';
 require_once __DIR__ . '/models/Notification.php';
 
-// Global model instances
-$userModel = new UserModel($conn);
-$inventoryModel = new InventoryModel($conn);
-$activityLogModel = new ActivityLogModel($conn);
-$requestModel = new RequestModel($conn);
-$notificationModel = new NotificationModel($conn);
+// ===== Get Model Instances from ControllerFactory =====
+$factory = ControllerFactory::getInstance();
+$userModel = $factory->getUserModel();
+$inventoryModel = $factory->getInventoryModel();
+$activityLogModel = $factory->getActivityLogModel();
+$requestModel = $factory->getRequestModel();
+$notificationModel = $factory->getNotificationModel();
+
+// ===== Initialize Observer Pattern for Activity Logging =====
+$eventNotifier = EventNotifier::getInstance();
+$activityLogObserver = new ActivityLogObserver($activityLogModel);
+$eventNotifier->attach($activityLogObserver);
 
 // Keep legacy arrays for backward compatibility, but now filled via models
 // Wrap in try-catch to handle cases where tables don't exist yet
@@ -81,6 +84,15 @@ function requireLogin() {
 
 function requireRole($role) {
     requireLogin();
+    
+    // Use Strategy Pattern for role-based access
+    $strategy = RoleStrategyFactory::createForCurrentUser();
+    if ($strategy && $strategy->getRoleName() !== $role) {
+        header('Location: ' . getBaseUrl() . 'routes/dashboard.php');
+        exit();
+    }
+    
+    // Fallback to old method if strategy is not available
     if (!hasRole($role)) {
         header('Location: ' . getBaseUrl() . 'routes/dashboard.php');
         exit();

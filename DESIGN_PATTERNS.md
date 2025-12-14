@@ -182,23 +182,115 @@ Models implement the DAO pattern by providing a data access interface that abstr
 
 ---
 
+## 8. Singleton Pattern
+
+**Status:** ✅ **Fully Implemented**
+
+The `Database` class ensures only one database connection exists throughout the application lifecycle.
+
+**Implementation:**
+- Located in `core/Database.php`
+- Private constructor prevents direct instantiation
+- `getInstance()` method returns the singleton instance
+- Connection is established once and reused
+
+**Example:**
+```php
+// Get database instance (singleton)
+$db = Database::getInstance();
+$conn = $db->getConnection();
+```
+
+---
+
+## 9. Factory Pattern
+
+**Status:** ✅ **Fully Implemented**
+
+The `ControllerFactory` centralizes controller creation and handles dependency injection automatically.
+
+**Implementation:**
+- Located in `core/ControllerFactory.php`
+- Maps route names to controller classes
+- Automatically injects dependencies (models, connections)
+- Singleton pattern ensures single factory instance
+
+**Example:**
+```php
+// Route file (routes/admin_users.php)
+$factory = ControllerFactory::getInstance();
+$controller = $factory->create('admin_users');
+$controller->index();
+```
+
+**Benefits:**
+- Centralized controller creation
+- Automatic dependency injection
+- Easy to add new controllers
+- Consistent initialization
+
+---
+
+## 10. Strategy Pattern
+
+**Status:** ✅ **Fully Implemented**
+
+Role-based access control uses the Strategy pattern to encapsulate role-specific behaviors.
+
+**Implementation:**
+- Located in `core/RoleStrategy.php`
+- `RoleStrategy` interface defines contract
+- Concrete strategies: `AdminRoleStrategy`, `DoctorRoleStrategy`, `PharmacistRoleStrategy`
+- `RoleStrategyFactory` creates appropriate strategy based on role
+
+**Example:**
+```php
+// Get strategy for current user
+$strategy = RoleStrategyFactory::createForCurrentUser();
+if ($strategy && $strategy->canAccess('manage_inventory')) {
+    // Allow access
+}
+```
+
+**Benefits:**
+- Encapsulates role-specific logic
+- Easy to add new roles
+- Centralized access control
+- Testable and maintainable
+
+---
+
+## 11. Observer Pattern
+
+**Status:** ✅ **Fully Implemented**
+
+Activity logging is handled automatically through the Observer pattern, decoupling logging from business logic.
+
+**Implementation:**
+- Located in `core/Observer.php`
+- `EventNotifier` (Subject) manages observers
+- `ActivityLogObserver` automatically logs events
+- Controllers notify events instead of directly logging
+
+**Example:**
+```php
+// In controller (InventoryController)
+$this->eventNotifier->notify('inventory.add', [
+    'name' => $item['name'],
+    'status' => 'Completed'
+]);
+// ActivityLogObserver automatically logs this
+```
+
+**Benefits:**
+- Decouples logging from business logic
+- Easy to add new observers (e.g., email notifications, audit trails)
+- Automatic activity logging
+- Consistent event handling
+
+---
+
 ## Patterns NOT Currently Implemented (But Could Be Added)
-
-### 1. Singleton Pattern
-- **Current:** Database connection is created once in `config.php` but not as a true singleton
-- **Could improve:** Create a `Database` singleton class to ensure only one connection exists
-
-### 2. Factory Pattern
-- **Current:** Controllers are instantiated directly in route files
-- **Could improve:** Use a `ControllerFactory` to create controllers based on route
-
-### 3. Strategy Pattern
-- **Current:** Role-based access is handled with if/else statements
-- **Could improve:** Use strategy pattern for different role behaviors
-
-### 4. Observer Pattern
-- **Current:** Activity logging is done manually in controllers
-- **Could improve:** Use observer pattern to automatically log all actions
 
 ### 5. Facade Pattern
 - **Current:** Controllers directly interact with multiple models
@@ -214,12 +306,16 @@ Models implement the DAO pattern by providing a data access interface that abstr
 
 **Currently Implemented Patterns:**
 1. ✅ MVC Architecture
-2. ✅ Dependency Injection (partial)
+2. ✅ Dependency Injection (improved)
 3. ✅ Repository Pattern
 4. ✅ Front Controller Pattern
 5. ✅ Template Method Pattern
 6. ✅ Service Layer Pattern
 7. ✅ DAO Pattern
+8. ✅ Singleton Pattern
+9. ✅ Factory Pattern
+10. ✅ Strategy Pattern
+11. ✅ Observer Pattern
 
 **Architecture Quality:**
 - **Separation of Concerns:** ✅ Excellent
@@ -233,10 +329,10 @@ Models implement the DAO pattern by providing a data access interface that abstr
 
 ## Recommendations for Improvement
 
-1. **Complete Dependency Injection:** Remove global variables, inject all dependencies
+1. **Complete Dependency Injection:** Remove remaining global variables, inject all dependencies
 2. **Add Service Layer:** Create service classes to handle complex business logic
-3. **Implement Factory Pattern:** For controller creation
-4. **Add Interface Abstractions:** Create interfaces for models to improve testability
-5. **Implement Singleton for Database:** Ensure single connection instance
-6. **Add Error Handling Strategy:** Consistent error handling pattern
+3. **Add Interface Abstractions:** Create interfaces for models to improve testability
+4. **Add Error Handling Strategy:** Consistent error handling pattern
+5. **Implement Facade Pattern:** Simplify complex operations with facades
+6. **Add Unit Tests:** Test individual components with dependency injection
 

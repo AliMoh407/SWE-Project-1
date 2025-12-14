@@ -1,12 +1,23 @@
 <?php
 
+require_once __DIR__ . '/../core/Observer.php';
+
 class InventoryController
 {
+    private InventoryModel $inventoryModel;
+    private EventNotifier $eventNotifier;
+
+    public function __construct(InventoryModel $inventoryModel, ActivityLogModel $activityLogModel)
+    {
+        $this->inventoryModel = $inventoryModel;
+        $this->eventNotifier = EventNotifier::getInstance();
+    }
+
     public function index(): void
     {
         requireRole(ROLE_PHARMACIST);
 
-        global $inventoryModel, $inventory, $activityLogModel;
+        global $inventory;
 
         $message = '';
         $message_type = '';
@@ -17,17 +28,17 @@ class InventoryController
 
             switch ($action) {
                 case 'add_item':
-                    $message = $this->handleAddItem($inventoryModel, $activityLogModel);
+                    $message = $this->handleAddItem();
                     $message_type = strpos($message, 'successfully') !== false ? 'success' : 'error';
                     break;
 
                 case 'edit_item':
-                    $message = $this->handleEditItem($inventoryModel, $activityLogModel);
+                    $message = $this->handleEditItem();
                     $message_type = strpos($message, 'successfully') !== false ? 'success' : 'error';
                     break;
 
                 case 'adjust_stock':
-                    $message = $this->handleAdjustStock($inventoryModel, $activityLogModel);
+                    $message = $this->handleAdjustStock();
                     $message_type = strpos($message, 'successfully') !== false ? 'success' : 'error';
                     break;
 
@@ -50,7 +61,7 @@ class InventoryController
         }
 
         // Reload inventory to ensure we have the latest data (especially after POST operations)
-        $inventory = $inventoryModel->getAll();
+        $inventory = $this->inventoryModel->getAll();
 
         $search = $_GET['search'] ?? '';
         $category_filter = $_GET['category'] ?? '';
@@ -77,10 +88,10 @@ class InventoryController
         if ($status_filter) {
             switch ($status_filter) {
                 case 'low_stock':
-                    $filtered_inventory = $inventoryModel->getLowStock();
+                    $filtered_inventory = $this->inventoryModel->getLowStock();
                     break;
                 case 'expiring_soon':
-                    $filtered_inventory = $inventoryModel->getExpiringSoon();
+                    $filtered_inventory = $this->inventoryModel->getExpiringSoon();
                     break;
                 case 'controlled':
                     $filtered_inventory = array_filter($inventory, function($item) {
@@ -104,7 +115,7 @@ class InventoryController
         require __DIR__ . '/../views/pharmacist/inventory.php';
     }
 
-    private function handleAddItem($inventoryModel, $activityLogModel): string
+    private function handleAddItem(): string
     {
         $name = $_POST['name'] ?? '';
         $category = $_POST['category'] ?? '';
@@ -128,19 +139,19 @@ class InventoryController
             'controlled' => $controlled
         ];
 
-        if ($inventoryModel->create($data)) {
-            $activityLogModel->create(
-                $_SESSION['user_id'],
-                "Added new inventory item: {$data['name']}",
-                'Completed'
-            );
+        if ($this->inventoryModel->create($data)) {
+            // Use Observer Pattern to automatically log activity
+            $this->eventNotifier->notify('inventory.add', [
+                'name' => $data['name'],
+                'status' => 'Completed'
+            ]);
             return 'Item added successfully!';
         }
 
         return 'Failed to add item. Please try again.';
     }
 
-    private function handleEditItem($inventoryModel, $activityLogModel): string
+    private function handleEditItem(): string
     {
         $item_id = $_POST['item_id'] ?? '';
         $name = $_POST['name'] ?? '';
@@ -165,19 +176,19 @@ class InventoryController
             'controlled' => $controlled
         ];
 
-        if ($inventoryModel->update((int)$item_id, $data)) {
-            $activityLogModel->create(
-                $_SESSION['user_id'],
-                "Updated inventory item: {$data['name']}",
-                'Completed'
-            );
+        if ($this->inventoryModel->update((int)$item_id, $data)) {
+            // Use Observer Pattern to automatically log activity
+            $this->eventNotifier->notify('inventory.update', [
+                'name' => $data['name'],
+                'status' => 'Completed'
+            ]);
             return 'Item updated successfully!';
         }
 
         return 'Failed to update item. Please try again.';
     }
 
-    private function handleAdjustStock($inventoryModel, $activityLogModel): string
+    private function handleAdjustStock(): string
     {
         $item_id = $_POST['item_id'] ?? '';
         $adjustment_type = $_POST['adjustment_type'] ?? '';
@@ -188,17 +199,20 @@ class InventoryController
             return 'Please provide valid adjustment details.';
         }
 
-        $item = $inventoryModel->findById((int)$item_id);
+        $item = $this->inventoryModel->findById((int)$item_id);
         if (!$item) {
             return 'Item not found.';
         }
 
-        if ($inventoryModel->adjustStock((int)$item_id, (int)$amount, $adjustment_type)) {
-            $activityLogModel->create(
-                $_SESSION['user_id'],
-                "Adjusted stock for {$item['name']}: {$adjustment_type} {$amount}" . ($reason ? " (Reason: {$reason})" : ''),
-                'Completed'
-            );
+        if ($this->inventoryModel->adjustStock((int)$item_id, (int)$amount, $adjustment_type)) {
+            // Use Observer Pattern to automatically log activity
+            $this->eventNotifier->notify('inventory.adjust_stock', [
+                'item_name' => $item['name'],
+                'adjustment_type' => $adjustment_type,
+                'amount' => $amount,
+                'reason' => $reason,
+                'status' => 'Completed'
+            ]);
             return 'Stock adjusted successfully!';
         }
 

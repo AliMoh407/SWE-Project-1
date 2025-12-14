@@ -1,0 +1,150 @@
+@startuml Factory Pattern - Controller Creation
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "core/ControllerFactory.php" {
+    
+    class ControllerFactory {
+        -conn: mysqli
+        -userModel: UserModel
+        -inventoryModel: InventoryModel
+        -activityLogModel: ActivityLogModel
+        -requestModel: RequestModel
+        -notificationModel: NotificationModel
+        -{static} instance: ControllerFactory
+        --
+        -__construct()
+        +{static} getInstance(): ControllerFactory
+        +create(controllerName: string): object
+        -getControllerClass(name: string): string
+        +getUserModel(): UserModel
+        +getInventoryModel(): InventoryModel
+        +getActivityLogModel(): ActivityLogModel
+        +getRequestModel(): RequestModel
+        +getNotificationModel(): NotificationModel
+        +getConnection(): mysqli
+    }
+    
+    note right of ControllerFactory
+        **Factory Pattern (Singleton)**
+        
+        Centralizes controller creation
+        and handles dependency injection.
+        
+        **Responsibilities:**
+        - Creates controllers based on route name
+        - Injects dependencies automatically
+        - Maps route names to controller classes
+        - Manages model instances
+    end note
+}
+
+package "core/Database.php" {
+    class Database {
+        +getInstance(): Database
+        +getConnection(): mysqli
+    }
+    
+    ControllerFactory ..> Database : uses
+}
+
+package "models" {
+    class UserModel
+    class InventoryModel
+    class ActivityLogModel
+    class RequestModel
+    class NotificationModel
+    
+    ControllerFactory ..> UserModel : creates
+    ControllerFactory ..> InventoryModel : creates
+    ControllerFactory ..> ActivityLogModel : creates
+    ControllerFactory ..> RequestModel : creates
+    ControllerFactory ..> NotificationModel : creates
+}
+
+package "controllers" {
+    class AuthController {
+        -userModel: UserModel
+        +login(): void
+    }
+    
+    class DashboardController {
+        +index(): void
+    }
+    
+    class UserController {
+        -conn: mysqli
+        -userModel: UserModel
+        +index(): void
+    }
+    
+    class InventoryController {
+        -inventoryModel: InventoryModel
+        -eventNotifier: EventNotifier
+        +index(): void
+    }
+    
+    class DoctorRequestController {
+        -inventoryModel: InventoryModel
+        -requestModel: RequestModel
+        -eventNotifier: EventNotifier
+        +create(): void
+    }
+    
+    class ActivityLogController {
+        +index(): void
+    }
+    
+    class ReportController {
+        +index(): void
+    }
+    
+    class DoctorHistoryController {
+        +index(): void
+    }
+    
+    class NotificationController {
+        +index(): void
+    }
+    
+    ControllerFactory ..> AuthController : creates
+    ControllerFactory ..> DashboardController : creates
+    ControllerFactory ..> UserController : creates
+    ControllerFactory ..> InventoryController : creates
+    ControllerFactory ..> DoctorRequestController : creates
+    ControllerFactory ..> ActivityLogController : creates
+    ControllerFactory ..> ReportController : creates
+    ControllerFactory ..> DoctorHistoryController : creates
+    ControllerFactory ..> NotificationController : creates
+}
+
+package "routes" {
+    class RouteFile {
+        +execute(): void
+        --
+        Uses ControllerFactory
+        to create controllers
+    }
+    
+    RouteFile ..> ControllerFactory : uses create()
+}
+
+note bottom of ControllerFactory
+    **Route to Controller Mapping:**
+    
+    - 'admin_users' → UserController
+    - 'dashboard' → DashboardController
+    - 'doctor_requests' → DoctorRequestController
+    - 'pharmacist_inventory' → InventoryController
+    - 'login' → AuthController
+    - etc.
+    
+    **Dependency Injection:**
+    Factory automatically injects
+    required models and connections
+    into controllers.
+end note
+
+@enduml
+

@@ -1,0 +1,95 @@
+@startuml Observer Pattern - Sequence Diagram
+
+actor User
+participant "InventoryController" as Controller
+participant "EventNotifier" as Notifier
+participant "ActivityLogObserver" as Observer
+participant "ActivityLogModel" as Model
+database "Database" as DB
+
+== Initialization (config.php) ==
+activate Notifier
+Notifier -> Notifier: getInstance()
+Notifier -> Observer: new ActivityLogObserver(model)
+activate Observer
+Notifier -> Notifier: attach(observer)
+Notifier -> Notifier: Store observer in list
+deactivate Observer
+
+== User Action: Add Inventory Item ==
+User -> Controller: Submit add item form
+activate Controller
+
+Controller -> Controller: Validate and process
+Controller -> Model: create(item)
+activate Model
+Model -> DB: INSERT INTO inventory
+activate DB
+DB --> Model: Success
+deactivate DB
+Model --> Controller: Item created
+deactivate Model
+
+Controller -> Notifier: notify('inventory.add', data)
+activate Notifier
+
+loop For each observer
+    Notifier -> Observer: update('inventory.add', data)
+    activate Observer
+    
+    Observer -> Observer: formatDescription(event, data)
+    Observer -> Observer: Check if user logged in
+    
+    alt User is logged in
+        Observer -> Model: create(userId, description, status)
+        activate Model
+        Model -> DB: INSERT INTO activity_logs
+        activate DB
+        DB --> Model: Log entry created
+        deactivate DB
+        Model --> Observer: Success
+        deactivate Model
+    else User not logged in
+        Observer -> Observer: Skip logging
+    end
+    
+    Observer --> Notifier: Update complete
+    deactivate Observer
+end
+
+Notifier --> Controller: Notification complete
+deactivate Notifier
+
+Controller --> User: Item added successfully
+deactivate Controller
+
+note over Notifier, Observer
+    Multiple observers can be
+    attached and all will be
+    notified of events
+end note
+
+== Multiple Events ==
+User -> Controller: Edit item
+activate Controller
+Controller -> Notifier: notify('inventory.update', data)
+activate Notifier
+Notifier -> Observer: update('inventory.update', data)
+activate Observer
+Observer -> Model: create(userId, description, status)
+activate Model
+Model -> DB: INSERT INTO activity_logs
+activate DB
+DB --> Model: Success
+deactivate DB
+Model --> Observer: Success
+deactivate Model
+Observer --> Notifier: Complete
+deactivate Observer
+Notifier --> Controller: Complete
+deactivate Notifier
+Controller --> User: Item updated
+deactivate Controller
+
+@enduml
+

@@ -1,7 +1,8 @@
 <?php
 require_once __DIR__ . '/../config.php';
-require_once __DIR__ . '/../controllers/DoctorHistoryController.php';
 
-$controller = new DoctorHistoryController();
+// Use Factory Pattern to create controller
+$factory = ControllerFactory::getInstance();
+$controller = $factory->create('doctor_request_history');
 $controller->index();
 
