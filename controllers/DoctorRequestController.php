@@ -51,40 +51,89 @@ class DoctorRequestController
                         $message = 'Quantity must be greater than 0.';
                         $message_type = 'error';
                     } else {
-                        // Create request in database
-                        $requestData = [
-                            'doctor_id' => $_SESSION['user_id'],
-                            'item_id' => (int)$item_id,
-                            'quantity' => $quantity,
-                            'patient_id' => trim($patient_id),
-                            'patient_name' => trim($patient_name),
-                            'notes' => trim($notes),
-                            'status' => $item['controlled'] ? 'Pending' : 'Approved',
-                            'priority' => $item['controlled'] ? 'high' : 'normal'
-                        ];
+                        // Check if item is controlled
+                        $isControlled = $item['controlled'];
+                        $requestStatus = $isControlled ? 'Pending' : 'Approved';
                         
-                        if ($this->requestModel->create($requestData)) {
-                            // Use Observer Pattern to automatically log activity
-                            $this->eventNotifier->notify('request.create', [
-                                'item_name' => $item['name'],
+                        // If non-controlled (auto-approved), check stock availability
+                        if (!$isControlled) {
+                            if ($item['stock'] < $quantity) {
+                                $message = "Insufficient stock. Available: {$item['stock']}, Requested: {$quantity}";
+                                $message_type = 'error';
+                            } else {
+                                // Create request in database
+                                $requestData = [
+                                    'doctor_id' => $_SESSION['user_id'],
+                                    'item_id' => (int)$item_id,
+                                    'quantity' => $quantity,
+                                    'patient_id' => trim($patient_id),
+                                    'patient_name' => trim($patient_name),
+                                    'notes' => trim($notes),
+                                    'status' => $requestStatus,
+                                    'priority' => 'normal'
+                                ];
+                                
+                                $requestId = $this->requestModel->create($requestData);
+                                if ($requestId !== false) {
+                                    // Reduce inventory stock for approved requests
+                                    if ($this->inventoryModel->adjustStock((int)$item_id, $quantity, 'subtract')) {
+                                        // Use Observer Pattern to automatically log activity
+                                        $this->eventNotifier->notify('request.create', [
+                                            'item_name' => $item['name'],
+                                            'quantity' => $quantity,
+                                            'status' => $requestStatus,
+                                            'description' => "Requested {$item['name']} (Quantity: {$quantity}) - Stock reduced"
+                                        ]);
+                                        
+                                        $message = 'Item request submitted successfully! Stock has been updated.';
+                                        $message_type = 'success';
+                                        
+                                        // Redirect to prevent form resubmission
+                                        header('Location: ' . getBaseUrl() . 'routes/doctor_requests.php?success=1');
+                                        exit();
+                                    } else {
+                                        // If stock adjustment fails, delete the request
+                                        $this->requestModel->delete($requestId);
+                                        $message = 'Failed to update inventory. Please try again.';
+                                        $message_type = 'error';
+                                    }
+                                } else {
+                                    $message = 'Failed to submit request. Please try again.';
+                                    $message_type = 'error';
+                                }
+                            }
+                        } else {
+                            // Controlled items - create request without reducing stock (pending approval)
+                            $requestData = [
+                                'doctor_id' => $_SESSION['user_id'],
+                                'item_id' => (int)$item_id,
                                 'quantity' => $quantity,
-                                'status' => $requestData['status']
-                            ]);
+                                'patient_id' => trim($patient_id),
+                                'patient_name' => trim($patient_name),
+                                'notes' => trim($notes),
+                                'status' => $requestStatus,
+                                'priority' => 'high'
+                            ];
                             
-                            if ($item['controlled']) {
+                            $requestId = $this->requestModel->create($requestData);
+                            if ($requestId !== false) {
+                                // Use Observer Pattern to automatically log activity
+                                $this->eventNotifier->notify('request.create', [
+                                    'item_name' => $item['name'],
+                                    'quantity' => $quantity,
+                                    'status' => $requestStatus
+                                ]);
+                                
                                 $message = 'Controlled medicine request submitted for approval.';
                                 $message_type = 'warning';
+                                
+                                // Redirect to prevent form resubmission
+                                header('Location: ' . getBaseUrl() . 'routes/doctor_requests.php?success=1');
+                                exit();
                             } else {
-                                $message = 'Item request submitted successfully!';
-                                $message_type = 'success';
+                                $message = 'Failed to submit request. Please try again.';
+                                $message_type = 'error';
                             }
-                            
-                            // Redirect to prevent form resubmission
-                            header('Location: ' . getBaseUrl() . 'routes/doctor_requests.php?success=1');
-                            exit();
-                        } else {
-                            $message = 'Failed to submit request. Please try again.';
-                            $message_type = 'error';
                         }
                     }
                 } else {

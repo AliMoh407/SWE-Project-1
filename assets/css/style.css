@@ -569,6 +569,16 @@ body {
     color: #721c24;
 }
 
+.priority-badge.priority-high {
+    background: #f8d7da;
+    color: #721c24;
+}
+
+.priority-badge.priority-normal {
+    background: #d1ecf1;
+    color: #0c5460;
+}
+
 .priority-indicator {
     font-weight: 500;
 }
@@ -1101,6 +1111,71 @@ body {
     .data-table {
         min-width: 600px;
     }
+}
+
+/* Filters Section */
+.filters-section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.filters-form {
+    display: flex;
+    gap: 1.5rem;
+    flex-wrap: wrap;
+    align-items: flex-end;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-group label {
+    font-weight: 500;
+    color: #495057;
+    font-size: 0.875rem;
+}
+
+.filter-group input,
+.filter-group select {
+    padding: 0.5rem;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    font-size: 0.875rem;
+}
+
+.filter-group input {
+    min-width: 250px;
+}
+
+/* Section Styles */
+.section {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #495057;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.subtitle {
+    color: #6c757d;
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
 }
 
 /* Utility Classes */

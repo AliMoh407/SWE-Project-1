@@ -21,6 +21,9 @@
         <li><a href="<?php echo getBaseUrl(); ?>routes/pharmacist_inventory.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'pharmacist_inventory.php' ? 'active' : ''; ?>">
             <i class="fas fa-boxes"></i> Inventory
         </a></li>
+        <li><a href="<?php echo getBaseUrl(); ?>routes/pharmacist_requests.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'pharmacist_requests.php' ? 'active' : ''; ?>">
+            <i class="fas fa-clipboard-check"></i> Manage Requests
+        </a></li>
         <li><a href="<?php echo getBaseUrl(); ?>routes/pharmacist_notifications.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'pharmacist_notifications.php' ? 'active' : ''; ?>">
             <i class="fas fa-bell"></i> Notifications
         </a></li>

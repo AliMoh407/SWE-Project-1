@@ -1,0 +1,68 @@
+@startuml Strategy Pattern - Simplified
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+
+package "Strategy Pattern" {
+    
+    interface RoleStrategy <<interface>> {
+        +canAccess(resource: string): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+    }
+    
+    class AdminRoleStrategy {
+        +canAccess(): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+    }
+    
+    class DoctorRoleStrategy {
+        +canAccess(): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+    }
+    
+    class PharmacistRoleStrategy {
+        +canAccess(): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+    }
+    
+    class RoleStrategyFactory {
+        +{static} create(role: string): RoleStrategy
+        +{static} createForCurrentUser(): RoleStrategy
+    }
+    
+    RoleStrategy <|.. AdminRoleStrategy
+    RoleStrategy <|.. DoctorRoleStrategy
+    RoleStrategy <|.. PharmacistRoleStrategy
+    
+    RoleStrategyFactory ..> RoleStrategy : creates
+}
+
+package "Usage" {
+    class Context {
+        -strategy: RoleStrategy
+        +checkAccess(resource: string): bool
+    }
+    
+    Context --> RoleStrategy : uses
+    Context ..> RoleStrategyFactory : gets strategy
+}
+
+note right of RoleStrategy
+    **Strategy Interface**
+    Defines contract for
+    role-based access control
+end note
+
+note right of RoleStrategyFactory
+    **Factory Method**
+    Creates appropriate
+    strategy instance
+end note
+
+@enduml
+

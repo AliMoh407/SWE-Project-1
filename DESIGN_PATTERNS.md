@@ -17,7 +17,7 @@ This is the primary architectural pattern used throughout the project.
   - Views are pure presentation, receiving data from controllers
 
 - **Controllers** (`controllers/`): Handle request processing and orchestration
-  - `UserController`, `DashboardController`, `AuthController`, etc.
+  - `UserController`, `DashboardController`, `AuthController`, `InventoryController`, `DoctorRequestController`, `PharmacistRequestController`, etc.
   - Controllers receive requests, interact with models, and render views
 
 **Example:**
@@ -150,7 +150,9 @@ Controllers act as a service layer between routes and models, containing busines
 - Prepare data for views
 - Manage session state
 
-**Example:**
+**Examples:**
+
+**Doctor Request Controller:**
 ```php
 class DoctorRequestController {
     public function create(): void {
@@ -161,7 +163,21 @@ class DoctorRequestController {
         }
         // Orchestrate: create request, log activity
         $requestModel->create($requestData);
-        $activityLogModel->create(...);
+        $eventNotifier->notify('request.create', [...]);
+    }
+}
+```
+
+**Pharmacist Request Controller:**
+```php
+class PharmacistRequestController {
+    public function handleApprove(array $request): array {
+        // Business logic: validate stock, approve request
+        if ($this->requestModel->approveRequest($request['id'], $inventoryModel, $approvedBy)) {
+            // Orchestrate: reduce stock, log activity
+            $this->eventNotifier->notify('request.approve', [...]);
+            return ['success' => true];
+        }
     }
 }
 ```
@@ -221,7 +237,19 @@ The `ControllerFactory` centralizes controller creation and handles dependency i
 $factory = ControllerFactory::getInstance();
 $controller = $factory->create('admin_users');
 $controller->index();
+
+// Route file (routes/pharmacist_requests.php)
+$factory = ControllerFactory::getInstance();
+$controller = $factory->create('pharmacist_requests');
+$controller->index();
+// Factory automatically injects RequestModel, InventoryModel, and EventNotifier
 ```
+
+**Supported Controllers:**
+- `AuthController`, `DashboardController`, `UserController`
+- `InventoryController`, `ActivityLogController`, `ReportController`
+- `DoctorRequestController`, `DoctorHistoryController`
+- `PharmacistRequestController`, `NotificationController`
 
 **Benefits:**
 - Centralized controller creation
@@ -272,7 +300,9 @@ Activity logging is handled automatically through the Observer pattern, decoupli
 - `ActivityLogObserver` automatically logs events
 - Controllers notify events instead of directly logging
 
-**Example:**
+**Examples:**
+
+**Inventory Controller:**
 ```php
 // In controller (InventoryController)
 $this->eventNotifier->notify('inventory.add', [
@@ -282,11 +312,34 @@ $this->eventNotifier->notify('inventory.add', [
 // ActivityLogObserver automatically logs this
 ```
 
+**Pharmacist Request Controller:**
+```php
+// In controller (PharmacistRequestController)
+$this->eventNotifier->notify('request.approve', [
+    'item_name' => $request['item_name'],
+    'quantity' => $request['quantity'],
+    'description' => "Approved request for {$request['item_name']} - Stock reduced"
+]);
+// ActivityLogObserver automatically logs the approval and stock reduction
+```
+
+**Doctor Request Controller:**
+```php
+// In controller (DoctorRequestController)
+$this->eventNotifier->notify('request.create', [
+    'item_name' => $item['name'],
+    'quantity' => $quantity,
+    'status' => $requestData['status']
+]);
+// ActivityLogObserver automatically logs the request creation
+```
+
 **Benefits:**
 - Decouples logging from business logic
 - Easy to add new observers (e.g., email notifications, audit trails)
 - Automatic activity logging
 - Consistent event handling
+- Used across multiple controllers: `InventoryController`, `DoctorRequestController`, `PharmacistRequestController`
 
 ---
 

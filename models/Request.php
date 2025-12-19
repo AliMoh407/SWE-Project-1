@@ -72,7 +72,7 @@ class RequestModel
         return $requests;
     }
 
-    public function create(array $data): bool
+    public function create(array $data): int|false
     {
         $stmt = $this->conn->prepare(
             "INSERT INTO requests (doctor_id, item_id, quantity, patient_id, patient_name, notes, status, priority, requested_date) 
@@ -98,8 +98,9 @@ class RequestModel
         );
         
         $success = $stmt->execute();
+        $insertId = $success ? $this->conn->insert_id : false;
         $stmt->close();
-        return $success;
+        return $insertId;
     }
 
     public function update(int $id, array $data): bool
@@ -143,6 +144,54 @@ class RequestModel
         $success = $stmt->execute();
         $stmt->close();
         return $success;
+    }
+
+    /**
+     * Approve a request and reduce inventory stock
+     * This method should be called when approving a pending request
+     * 
+     * @param int $requestId The request ID to approve
+     * @param InventoryModel $inventoryModel The inventory model to update stock
+     * @param string|null $approvedBy Optional: who approved the request
+     * @return bool True if successful, false otherwise
+     */
+    public function approveRequest(int $requestId, InventoryModel $inventoryModel, ?string $approvedBy = null): bool
+    {
+        // Get the request details
+        $request = $this->findById($requestId);
+        if (!$request) {
+            return false;
+        }
+        
+        // Check if already approved
+        if ($request['status'] === 'Approved') {
+            return true; // Already approved
+        }
+        
+        // Check if stock is available
+        $item = $inventoryModel->findById($request['item_id']);
+        if (!$item) {
+            return false;
+        }
+        
+        if ($item['stock'] < $request['quantity']) {
+            return false; // Insufficient stock
+        }
+        
+        // Update request status
+        $updateData = [
+            'status' => 'Approved'
+        ];
+        if ($approvedBy !== null) {
+            $updateData['approved_by'] = $approvedBy;
+        }
+        
+        if (!$this->update($requestId, $updateData)) {
+            return false;
+        }
+        
+        // Reduce inventory stock
+        return $inventoryModel->adjustStock($request['item_id'], $request['quantity'], 'subtract');
     }
 
     public function delete(int $id): bool

@@ -1,6 +1,7 @@
 <?php
 
 require_once __DIR__ . '/Database.php';
+require_once __DIR__ . '/Observer.php';
 require_once __DIR__ . '/../models/User.php';
 require_once __DIR__ . '/../models/Inventory.php';
 require_once __DIR__ . '/../models/ActivityLog.php';
@@ -17,6 +18,7 @@ require_once __DIR__ . '/../controllers/ReportController.php';
 require_once __DIR__ . '/../controllers/DoctorRequestController.php';
 require_once __DIR__ . '/../controllers/DoctorHistoryController.php';
 require_once __DIR__ . '/../controllers/NotificationController.php';
+require_once __DIR__ . '/../controllers/PharmacistRequestController.php';
 
 /**
  * Controller Factory Pattern
@@ -86,6 +88,11 @@ class ControllerFactory
             ),
             'DoctorHistoryController' => new DoctorHistoryController(),
             'NotificationController' => new NotificationController(),
+            'PharmacistRequestController' => new PharmacistRequestController(
+                $this->requestModel,
+                $this->inventoryModel,
+                EventNotifier::getInstance()
+            ),
             default => throw new Exception("Unknown controller: {$controllerClass}")
         };
     }
@@ -111,6 +118,7 @@ class ControllerFactory
             'doctor_requests' => 'DoctorRequestController',
             'doctor_request_history' => 'DoctorHistoryController',
             'pharmacist_inventory' => 'InventoryController',
+            'pharmacist_requests' => 'PharmacistRequestController',
             'pharmacist_notifications' => 'NotificationController',
             'login' => 'AuthController',
         ];
