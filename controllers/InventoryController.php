@@ -140,7 +140,7 @@ class InventoryController
         ];
 
         if ($this->inventoryModel->create($data)) {
-            // Use Observer Pattern to automatically log activity
+            // Use Observer Pattern to automatically log activity                                /////////////////////////////
             $this->eventNotifier->notify('inventory.add', [
                 'name' => $data['name'],
                 'status' => 'Completed'
@@ -178,7 +178,7 @@ class InventoryController
 
         if ($this->inventoryModel->update((int)$item_id, $data)) {
             // Use Observer Pattern to automatically log activity
-            $this->eventNotifier->notify('inventory.update', [
+            $this->eventNotifier->notify('inventory.update', [                                //////////////////////////
                 'name' => $data['name'],
                 'status' => 'Completed'
             ]);

@@ -33,7 +33,7 @@ class ControllerFactory
     private RequestModel $requestModel;
     private NotificationModel $notificationModel;
     
-    private static ?ControllerFactory $instance = null;
+    private static ?ControllerFactory $instance = null;    //single instance only 
     
     /**
      * Private constructor - use getInstance() instead
