@@ -37,18 +37,18 @@ class DoctorRequestController
             $patient_name = $_POST['patient_name'] ?? '';
             $notes = $_POST['notes'] ?? '';
             
-            // Validate required fields
-            if (empty($item_id) || empty($quantity) || empty($patient_id) || empty($patient_name)) {
+          
+            if (empty($item_id) || empty($quantity) || empty($patient_id) || empty($patient_name)) {     //Data validation 
                 $message = 'Please fill in all required fields.';
                 $message_type = 'error';
             } else {
                 $item = $this->inventoryModel->findById((int)$item_id);
                 
                 if ($item) {
-                    // Validate quantity is positive
+                   
                     $quantity = (int)$quantity;
                     if ($quantity <= 0) {
-                        $message = 'Quantity must be greater than 0.';
+                        $message = 'Quantity must be greater than 0.';       //Data validation 
                         $message_type = 'error';
                     } else {
                         // Check if item is controlled

@@ -1,0 +1,63 @@
+@startuml Strategy Pattern - Documentation Version
+
+!define STRATEGY_COLOR #E1F5FF
+!define FACTORY_COLOR #FFF4E1
+!define USAGE_COLOR #E8F5E9
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam linetype ortho
+
+package "Strategy Pattern" STRATEGY_COLOR {
+    
+    interface RoleStrategy <<interface>> {
+        +canAccess(resource): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+    }
+    
+    class AdminRoleStrategy {
+        +canAccess(): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+    }
+    
+    class DoctorRoleStrategy {
+        +canAccess(): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+    }
+    
+    class PharmacistRoleStrategy {
+        +canAccess(): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+    }
+    
+    RoleStrategy <|.. AdminRoleStrategy
+    RoleStrategy <|.. DoctorRoleStrategy
+    RoleStrategy <|.. PharmacistRoleStrategy
+}
+
+package "Factory" FACTORY_COLOR {
+    class RoleStrategyFactory {
+        +{static} create(role): RoleStrategy
+        +{static} createForCurrentUser(): RoleStrategy
+    }
+    
+    RoleStrategyFactory ..> RoleStrategy : creates
+}
+
+package "Context" USAGE_COLOR {
+    class ConfigHelper {
+        +requireRole(role): void
+        +hasRole(role): bool
+    }
+    
+    ConfigHelper --> RoleStrategy : uses
+    ConfigHelper ..> RoleStrategyFactory : gets strategy
+}
+
+@enduml
+

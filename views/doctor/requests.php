@@ -46,18 +46,18 @@ include __DIR__ . '/../../includes/navigation.php';
             <div class="form-row">
                 <div class="form-group">
                     <label for="quantity">Quantity</label>
-                    <input type="number" id="quantity" name="quantity" required min="1" placeholder="Enter quantity">
+                    <input type="number" id="quantity" name="quantity" required min="1" placeholder="Enter quantity">    
                 </div>
                 
                 <div class="form-group">
                     <label for="patient_id">Patient ID</label>
-                    <input type="text" id="patient_id" name="patient_id" required placeholder="e.g., P001">
+                    <input type="text" id="patient_id" name="patient_id" required placeholder="e.g., P001">  
                 </div>
             </div>
             
             <div class="form-group">
-                <label for="patient_name">Patient Name</label>
-                <input type="text" id="patient_name" name="patient_name" required placeholder="Enter patient's full name">
+                <label for="patient_name">Patient Name</label>               
+                 <input type="text" id="patient_name" name="patient_name" required placeholder="Enter patient's full name">  
             </div>
             
             <div class="form-group">

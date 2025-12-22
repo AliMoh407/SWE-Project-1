@@ -22,9 +22,9 @@ include __DIR__ . '/../../includes/header.php';
                 <label for="username">
                     <i class="fas fa-user"></i>
                     Username
-                </label>
-                <input type="text" id="username" name="username" required 
-                       value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">
+                </label>         
+                <input type="text" id="username" name="username" required    
+                       value="<?php echo htmlspecialchars($_POST['username'] ?? ''); ?>">      
             </div>
             
             <div class="form-group">

@@ -20,7 +20,7 @@ class AuthController
             // Use the UserModel (OOP) to find the user by credentials
             $user = $this->userModel->findByCredentials($username, $password);
 
-            if ($user) {
+            if ($user) {    
                 $_SESSION['user_id'] = $user['id'];
                 $_SESSION['username'] = $user['username'];
                 $_SESSION['role'] = $user['role'];
