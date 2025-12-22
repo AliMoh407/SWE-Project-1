@@ -3,8 +3,10 @@
 skinparam classAttributeIconSize 0
 skinparam shadowing false
 
+' --------------------------
+' Database Singleton
+' --------------------------
 package "core/Database.php" {
-    
     class Database {
         -{static} instance: Database
         -connection: mysqli
@@ -22,49 +24,65 @@ package "core/Database.php" {
         +close(): void
         +{static} reset(): void
     }
-    
+
     note right of Database
         **Singleton Pattern**
-        
-        Ensures only one database
-        connection exists throughout
-        the application.
-        
-        **Key Features:**
-        - Private constructor prevents
-          direct instantiation
-        - Static getInstance() method
-          returns single instance
+        - Ensures only one database connection exists
+        - Private constructor prevents direct instantiation
+        - Static getInstance() method returns single instance
         - __clone() prevents cloning
-        - __wakeup() prevents
-          unserialization
+        - __wakeup() prevents unserialization
     end note
 }
 
+' --------------------------
+' Config using Database
+' --------------------------
 package "config.php" {
     class Config {
         +initialize(): void
         --
-        Uses Database::getInstance()
-        to get connection
+        Uses Database::getInstance() to get connection
     }
-    
+
     Config ..> Database : uses getInstance()
 }
 
+' --------------------------
+' Models connected to Database
+' --------------------------
 package "Models" {
     class UserModel {
         -conn: mysqli
-        +__construct(conn: mysqli)
+        +__construct()
     }
-    
+
     class InventoryModel {
         -conn: mysqli
-        +__construct(conn: mysqli)
+        +__construct()
     }
-    
+
+    class RequestModel {
+        -conn: mysqli
+        +__construct()
+    }
+
+    class NotificationModel {
+        -conn: mysqli
+        +__construct()
+    }
+
+    class ActivityLogModel {
+        -conn: mysqli
+        +__construct()
+    }
+
+    ' Relationships
     UserModel ..> Database : uses getConnection()
     InventoryModel ..> Database : uses getConnection()
+    RequestModel ..> Database : uses getConnection()
+    NotificationModel ..> Database : uses getConnection()
+    ActivityLogModel ..> Database : uses getConnection()
 }
 
 note bottom of Database
@@ -73,9 +91,7 @@ note bottom of Database
     $db = Database::getInstance();
     $conn = $db->getConnection();
     
-    Multiple calls to getInstance()
-    return the same instance.
+    Multiple calls to getInstance() return the same instance.
 end note
 
 @enduml
-
