@@ -1,0 +1,111 @@
+@startuml Observer Pattern - Activity Logging
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "core/Observer.php" {
+    
+    interface Observer <<interface>> {
+        +update(event: string, data: array): void
+    }
+    
+    interface Subject <<interface>> {
+        +attach(observer: Observer): void
+        +detach(observer: Observer): void
+        +notify(event: string, data: array): void
+    }
+    
+    class EventNotifier {
+        -observers: array
+        -{static} instance: EventNotifier
+        --
+        +{static} getInstance(): EventNotifier
+        +attach(observer: Observer): void
+        +detach(observer: Observer): void
+        +notify(event: string, data: array): void
+        +{static} reset(): void
+    }
+    
+    class ActivityLogObserver {
+        -activityLogModel: ActivityLogModel
+        --
+        +__construct(activityLogModel: ActivityLogModel)
+        +update(event: string, data: array): void
+        -formatDescription(event: string, data: array): string
+    }
+    
+    Subject <|.. EventNotifier : implements
+    Observer <|.. ActivityLogObserver : implements
+    
+    EventNotifier "1" o-- "*" Observer : manages
+    
+    note right of EventNotifier
+        **Subject (Singleton)**
+        
+        Manages list of observers
+        and notifies them of events.
+        
+        Uses Singleton pattern to
+        ensure single instance.
+    end note
+    
+    note right of ActivityLogObserver
+        **Concrete Observer**
+        
+        Automatically logs activities
+        when events are notified.
+        
+        Formats event descriptions
+        based on event type.
+    end note
+}
+
+package "models/ActivityLog.php" {
+    class ActivityLogModel {
+        +create(userId: int, description: string, status: string): bool
+    }
+    
+    ActivityLogObserver ..> ActivityLogModel : uses
+}
+
+package "controllers" {
+    class InventoryController {
+        -eventNotifier: EventNotifier
+        +handleAddItem(): string
+        +handleEditItem(): string
+        +handleAdjustStock(): string
+    }
+    
+    class DoctorRequestController {
+        -eventNotifier: EventNotifier
+        +create(): void
+    }
+    
+    InventoryController ..> EventNotifier : uses notify()
+    DoctorRequestController ..> EventNotifier : uses notify()
+}
+
+package "config.php" {
+    class Config {
+        +initialize(): void
+        --
+        Attaches ActivityLogObserver
+        to EventNotifier
+    }
+    
+    Config ..> EventNotifier : attach()
+    Config ..> ActivityLogObserver : creates
+}
+
+note bottom of Observer
+    **Observer Pattern Benefits:**
+    
+    - Decouples logging from business logic
+    - Easy to add new observers (email, audit, etc.)
+    - Automatic activity logging
+    - Controllers don't need to know
+      about logging implementation
+end note
+
+@enduml
+

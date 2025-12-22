@@ -1,0 +1,110 @@
+@startuml Factory Pattern - Sequence Diagram
+
+actor User
+participant "Route File" as Route
+participant "ControllerFactory" as Factory
+participant "Database" as DB
+participant "Models" as Models
+participant "Controller" as Controller
+
+== Initialization ==
+Route -> Factory: getInstance()
+activate Factory
+
+alt Factory instance is null
+    Factory -> Factory: new ControllerFactory()
+    Factory -> DB: getInstance()
+    activate DB
+    DB --> Factory: Database instance
+    deactivate DB
+    
+    Factory -> Models: new UserModel(conn)
+    activate Models
+    Models --> Factory: UserModel instance
+    deactivate Models
+    
+    Factory -> Models: new InventoryModel(conn)
+    activate Models
+    Models --> Factory: InventoryModel instance
+    deactivate Models
+    
+    Factory -> Models: new ActivityLogModel(conn)
+    activate Models
+    Models --> Factory: ActivityLogModel instance
+    deactivate Models
+    
+    Factory -> Models: new RequestModel(conn)
+    activate Models
+    Models --> Factory: RequestModel instance
+    deactivate Models
+    
+    Factory -> Models: new NotificationModel(conn)
+    activate Models
+    Models --> Factory: NotificationModel instance
+    deactivate Models
+    
+    Factory -> Factory: Store instance
+else Factory instance exists
+    note right of Factory
+        Returns existing
+        singleton instance
+    end note
+end
+
+Factory --> Route: ControllerFactory instance
+deactivate Factory
+
+== Controller Creation ==
+User -> Route: Request page (e.g., /routes/admin_users.php)
+activate Route
+
+Route -> Factory: create('admin_users')
+activate Factory
+
+Factory -> Factory: getControllerClass('admin_users')
+Factory -> Factory: Map 'admin_users' to 'UserController'
+
+alt Controller is UserController
+    Factory -> Controller: new UserController(conn, userModel)
+    activate Controller
+    Factory -> Factory: Inject dependencies
+    Factory --> Route: UserController instance
+    deactivate Controller
+else Controller is InventoryController
+    Factory -> Controller: new InventoryController(inventoryModel, activityLogModel)
+    activate Controller
+    Factory --> Route: InventoryController instance
+    deactivate Controller
+else Controller is DoctorRequestController
+    Factory -> Controller: new DoctorRequestController(inventoryModel, requestModel, activityLogModel)
+    activate Controller
+    Factory --> Route: DoctorRequestController instance
+    deactivate Controller
+else Controller is DashboardController
+    Factory -> Controller: new DashboardController()
+    activate Controller
+    Factory --> Route: DashboardController instance
+    deactivate Controller
+end
+
+deactivate Factory
+
+Route -> Controller: index()
+activate Controller
+Controller -> Controller: Execute business logic
+Controller --> Route: Render view
+deactivate Controller
+
+Route --> User: Display page
+deactivate Route
+
+note over Factory, Controller
+    Factory handles all dependency
+    injection automatically.
+    
+    Route files don't need to know
+    about controller dependencies.
+end note
+
+@enduml
+

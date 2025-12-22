@@ -1,0 +1,86 @@
+@startuml Strategy Pattern - Sequence Diagram
+
+actor User
+participant "Controller" as Controller
+participant "ConfigHelper" as Config
+participant "RoleStrategyFactory" as Factory
+participant "RoleStrategy" as Strategy
+participant "AdminRoleStrategy" as Admin
+participant "DoctorRoleStrategy" as Doctor
+participant "PharmacistRoleStrategy" as Pharmacist
+
+User -> Controller: Request access to resource
+activate Controller
+
+Controller -> Config: requireRole(ROLE_DOCTOR)
+activate Config
+
+Config -> Factory: createForCurrentUser()
+activate Factory
+
+alt User is logged in
+    Factory -> Factory: Get user from session
+    Factory -> Factory: Get user role from database
+    Factory -> Factory: create(role)
+    
+    alt Role is ADMIN
+        Factory -> Admin: new AdminRoleStrategy()
+        activate Admin
+        Factory <-- Admin: AdminRoleStrategy instance
+        deactivate Admin
+    else Role is DOCTOR
+        Factory -> Doctor: new DoctorRoleStrategy()
+        activate Doctor
+        Factory <-- Doctor: DoctorRoleStrategy instance
+        deactivate Doctor
+    else Role is PHARMACIST
+        Factory -> Pharmacist: new PharmacistRoleStrategy()
+        activate Pharmacist
+        Factory <-- Pharmacist: PharmacistRoleStrategy instance
+        deactivate Pharmacist
+    end
+    
+    Factory <-- Factory: Strategy instance
+    deactivate Factory
+    
+    Config -> Strategy: getRoleName()
+    activate Strategy
+    
+    alt Strategy is AdminRoleStrategy
+        Strategy -> Admin: getRoleName()
+        activate Admin
+        Admin --> Strategy: "admin"
+        deactivate Admin
+    else Strategy is DoctorRoleStrategy
+        Strategy -> Doctor: getRoleName()
+        activate Doctor
+        Doctor --> Strategy: "doctor"
+        deactivate Doctor
+    else Strategy is PharmacistRoleStrategy
+        Strategy -> Pharmacist: getRoleName()
+        activate Pharmacist
+        Pharmacist --> Strategy: "pharmacist"
+        deactivate Pharmacist
+    end
+    
+    Strategy --> Config: Role name
+    deactivate Strategy
+    
+    alt Required role matches user role
+        Config --> Controller: Access granted
+    else Required role doesn't match
+        Config --> Controller: Redirect to dashboard
+    end
+    
+else User is not logged in
+    Factory --> Config: null
+    deactivate Factory
+    Config --> Controller: Redirect to login
+end
+
+deactivate Config
+Controller --> User: Response (page or redirect)
+deactivate Controller
+
+@enduml
+

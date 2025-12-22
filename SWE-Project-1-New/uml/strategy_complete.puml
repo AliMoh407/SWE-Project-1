@@ -1,0 +1,121 @@
+@startuml Strategy Pattern - Complete Implementation
+
+skinparam classAttributeIconSize 0
+skinparam shadowing false
+
+package "core/RoleStrategy.php" {
+    
+    interface RoleStrategy <<interface>> {
+        +canAccess(resource: string): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+    }
+    
+    class AdminRoleStrategy {
+        +canAccess(resource: string): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+        --
+        canAccess() always returns true
+        (Admin has full access)
+    }
+    
+    class DoctorRoleStrategy {
+        -allowedResources: array
+        +canAccess(resource: string): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+        --
+        Allowed resources:
+        - dashboard
+        - request_items
+        - view_request_history
+        - view_notifications
+    }
+    
+    class PharmacistRoleStrategy {
+        -allowedResources: array
+        +canAccess(resource: string): bool
+        +getAllowedActions(): array
+        +getRoleName(): string
+        --
+        Allowed resources:
+        - dashboard
+        - manage_inventory
+        - view_notifications
+        - approve_requests
+    }
+    
+    class RoleStrategyFactory {
+        +{static} create(role: string): RoleStrategy
+        +{static} createForCurrentUser(): RoleStrategy
+        --
+        Factory methods:
+        - create(): Creates strategy by role
+        - createForCurrentUser(): Gets role from session
+    }
+    
+    RoleStrategy <|.. AdminRoleStrategy
+    RoleStrategy <|.. DoctorRoleStrategy
+    RoleStrategy <|.. PharmacistRoleStrategy
+    
+    RoleStrategyFactory ..> RoleStrategy : creates
+    RoleStrategyFactory ..> AdminRoleStrategy : creates
+    RoleStrategyFactory ..> DoctorRoleStrategy : creates
+    RoleStrategyFactory ..> PharmacistRoleStrategy : creates
+}
+
+package "config.php" {
+    class ConfigHelper {
+        +requireRole(role: string): void
+        +hasRole(role: string): bool
+        --
+        Uses RoleStrategyFactory
+        to get appropriate strategy
+    }
+    
+    ConfigHelper ..> RoleStrategyFactory : uses
+    ConfigHelper ..> RoleStrategy : uses
+}
+
+package "Usage Example" {
+    class Controller {
+        +index(): void
+        --
+        Calls requireRole()
+        to check access
+    }
+    
+    Controller ..> ConfigHelper : uses
+}
+
+note top of RoleStrategy
+    **Strategy Interface**
+    Defines the contract that all
+    role strategies must implement.
+    
+    This allows for interchangeable
+    role-based access control.
+end note
+
+note right of RoleStrategyFactory
+    **Factory Pattern Integration**
+    The factory creates the appropriate
+    strategy instance based on the role.
+    
+    This decouples strategy creation
+    from strategy usage.
+end note
+
+note bottom of ConfigHelper
+    **Context/Client**
+    The ConfigHelper acts as the context
+    that uses the strategy pattern.
+    
+    It can switch between different
+    strategies at runtime based on
+    the user's role.
+end note
+
+@enduml
+

@@ -1,0 +1,67 @@
+@startuml Singleton Pattern - Sequence Diagram
+
+actor Client1
+actor Client2
+participant "config.php" as Config
+participant "Database" as DB
+database "MySQL Database" as MySQL
+
+== First Call ==
+Client1 -> Config: Request database connection
+activate Config
+
+Config -> DB: getInstance()
+activate DB
+
+alt Instance is null
+    DB -> DB: new Database()
+    activate DB
+    DB -> DB: connect()
+    DB -> MySQL: Establish connection
+    activate MySQL
+    MySQL --> DB: Connection established
+    deactivate MySQL
+    DB -> DB: Store instance in $instance
+    DB --> Config: Return instance
+else Instance exists
+    DB --> Config: Return existing instance
+end
+
+deactivate DB
+Config --> Client1: Database connection
+
+== Second Call (Same Instance) ==
+Client2 -> Config: Request database connection
+activate Config
+
+Config -> DB: getInstance()
+activate DB
+
+note right of DB
+    Instance already exists,
+    returns same instance
+end note
+
+DB --> Config: Return existing instance
+deactivate DB
+
+Config --> Client2: Same database connection
+deactivate Config
+
+== Connection Usage ==
+Client1 -> DB: getConnection()
+activate DB
+DB -> MySQL: Return mysqli connection
+activate MySQL
+MySQL --> DB: Connection object
+deactivate MySQL
+DB --> Client1: mysqli connection
+deactivate DB
+
+note over Client1, Client2
+    Both clients share the same
+    database connection instance
+end note
+
+@enduml
+
