@@ -1,19 +1,43 @@
 {
-    "name": "swe/project-1",
-    "description": "SWE Project 1 PHP app with PHPUnit tests",
-    "type": "project",
-    "require": {},
+    "name": "nikic/php-parser",
+    "type": "library",
+    "description": "A PHP parser written in PHP",
+    "keywords": [
+        "php",
+        "parser"
+    ],
+    "license": "BSD-3-Clause",
+    "authors": [
+        {
+            "name": "Nikita Popov"
+        }
+    ],
+    "require": {
+        "php": ">=7.4",
+        "ext-tokenizer": "*",
+        "ext-json": "*",
+        "ext-ctype": "*"
+    },
     "require-dev": {
-        "phpunit/phpunit": "^9.6"
+        "phpunit/phpunit": "^9.0",
+        "ircmaxell/php-yacc": "^0.0.7"
+    },
+    "extra": {
+        "branch-alias": {
+            "dev-master": "5.x-dev"
+        }
     },
     "autoload": {
-        "classmap": [
-            "models/",
-            "controllers/"
-        ]
+        "psr-4": {
+            "PhpParser\\": "lib/PhpParser"
+        }
     },
-    "scripts": {
-        "test": "vendor/bin/phpunit"
-    }
+    "autoload-dev": {
+        "psr-4": {
+            "PhpParser\\": "test/PhpParser/"
+        }
+    },
+    "bin": [
+        "bin/php-parse"
+    ]
 }
-
