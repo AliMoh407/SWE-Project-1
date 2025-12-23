@@ -55,6 +55,15 @@
             'aliases' => array(),
             'dev_requirement' => true,
         ),
+        'php-ai/php-ml' => array(
+            'pretty_version' => '0.10.0',
+            'version' => '0.10.0.0',
+            'reference' => '543f11158c57bf64ef8ddecd5bab51d396d39f50',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../php-ai/php-ml',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'phpunit/php-code-coverage' => array(
             'pretty_version' => '9.2.32',
             'version' => '9.2.32.0',

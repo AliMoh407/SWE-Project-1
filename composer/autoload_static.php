@@ -14,6 +14,7 @@ class ComposerStaticInit9108896d1d996f1fcc0f409672f91392
     public static $prefixLengthsPsr4 = array (
         'P' =>
         array (
+            'Phpml\\' => 6,
             'PhpParser\\' => 10,
         ),
         'D' =>
@@ -24,6 +25,10 @@ class ComposerStaticInit9108896d1d996f1fcc0f409672f91392
     );
 
     public static $prefixDirsPsr4 = array (
+        'Phpml\\' =>
+        array (
+            0 => __DIR__ . '/..' . '/php-ai/php-ml/src',
+        ),
         'PhpParser\\' =>
         array (
             0 => __DIR__ . '/..' . '/nikic/php-parser/lib/PhpParser',
@@ -48,6 +53,8 @@ class ComposerStaticInit9108896d1d996f1fcc0f409672f91392
         'DoctorRequestController' => __DIR__ . '/../..' . '/controllers/DoctorRequestController.php',
         'InventoryController' => __DIR__ . '/../..' . '/controllers/InventoryController.php',
         'InventoryModel' => __DIR__ . '/../..' . '/models/Inventory.php',
+        'MLController' => __DIR__ . '/../..' . '/controllers/MLController.php',
+        'MLService' => __DIR__ . '/../..' . '/models/MLService.php',
         'NotificationController' => __DIR__ . '/../..' . '/controllers/NotificationController.php',
         'NotificationModel' => __DIR__ . '/../..' . '/models/Notification.php',
         'PHPUnit\\Exception' => __DIR__ . '/..' . '/phpunit/phpunit/src/Exception.php',

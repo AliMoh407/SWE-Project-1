@@ -15,6 +15,8 @@ return array(
     'DoctorRequestController' => $baseDir . '/controllers/DoctorRequestController.php',
     'InventoryController' => $baseDir . '/controllers/InventoryController.php',
     'InventoryModel' => $baseDir . '/models/Inventory.php',
+    'MLController' => $baseDir . '/controllers/MLController.php',
+    'MLService' => $baseDir . '/models/MLService.php',
     'NotificationController' => $baseDir . '/controllers/NotificationController.php',
     'NotificationModel' => $baseDir . '/models/Notification.php',
     'PHPUnit\\Exception' => $vendorDir . '/phpunit/phpunit/src/Exception.php',
