@@ -15,6 +15,9 @@
         <li><a href="<?php echo getBaseUrl(); ?>routes/admin_reports.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_reports.php' ? 'active' : ''; ?>">
             <i class="fas fa-chart-bar"></i> Reports
         </a></li>
+        <li><a href="<?php echo getBaseUrl(); ?>routes/admin_anomalies.php" class="<?php echo basename($_SERVER['PHP_SELF']) == 'admin_anomalies.php' ? 'active' : ''; ?>">
+            <i class="fas fa-brain"></i> AI Anomalies
+        </a></li>
         <?php endif; ?>
         
         <?php if (hasRole(ROLE_PHARMACIST)): ?>
