@@ -96,3 +96,45 @@ INSERT INTO `notifications` (`type`, `title`, `message`, `item_id`, `priority`, 
 ('request', 'New Request', 'Dr. Sarah Johnson requested Paracetamol 500mg', 1, 'low', 1, '2024-01-15 12:20:00'),
 ('system', 'System Update', 'Inventory system updated successfully', NULL, 'low', 1, '2024-01-15 10:00:00');
 
+-- ML Predictions table (stores AI predictions for demand forecasting)
+CREATE TABLE IF NOT EXISTS `ml_predictions` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `item_id` INT NOT NULL,
+    `predicted_demand` INT NOT NULL,
+    `predicted_date` DATE NOT NULL,
+    `confidence` DECIMAL(3,2) DEFAULT 0.00,
+    `model_version` VARCHAR(50) DEFAULT '1.0',
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`item_id`) REFERENCES `inventory`(`id`) ON DELETE CASCADE,
+    INDEX `idx_item_date` (`item_id`, `predicted_date`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ML Training Data table (stores historical data for model training)
+CREATE TABLE IF NOT EXISTS `ml_training_data` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `item_id` INT NOT NULL,
+    `quantity` INT NOT NULL,
+    `month` INT NOT NULL,
+    `day_of_week` INT NOT NULL,
+    `season` VARCHAR(20),
+    `category` VARCHAR(100),
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`item_id`) REFERENCES `inventory`(`id`) ON DELETE CASCADE,
+    INDEX `idx_item_date` (`item_id`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+-- ML Anomalies table (stores detected anomalies)
+CREATE TABLE IF NOT EXISTS `ml_anomalies` (
+    `id` INT AUTO_INCREMENT PRIMARY KEY,
+    `request_id` INT NULL,
+    `item_id` INT NULL,
+    `anomaly_type` VARCHAR(50) NOT NULL,
+    `anomaly_score` DECIMAL(5,4) NOT NULL,
+    `description` TEXT,
+    `resolved` TINYINT(1) DEFAULT 0,
+    `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`request_id`) REFERENCES `requests`(`id`) ON DELETE SET NULL,
+    FOREIGN KEY (`item_id`) REFERENCES `inventory`(`id`) ON DELETE SET NULL,
+    INDEX `idx_resolved` (`resolved`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+

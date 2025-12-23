@@ -6,7 +6,7 @@ class DoctorRequestController
     {
         requireRole(ROLE_DOCTOR);
 
-        global $inventoryModel, $requestModel, $activityLogModel;
+        global $inventoryModel, $requestModel, $activityLogModel, $conn;
         global $inventory;
 
         // Ensure inventory is loaded
@@ -24,17 +24,17 @@ class DoctorRequestController
             $patient_id = $_POST['patient_id'] ?? '';
             $patient_name = $_POST['patient_name'] ?? '';
             $notes = $_POST['notes'] ?? '';
-            
+
             // Validate required fields
             if (empty($item_id) || empty($quantity) || empty($patient_id) || empty($patient_name)) {
                 $message = 'Please fill in all required fields.';
                 $message_type = 'error';
             } else {
-                $item = $inventoryModel->findById((int)$item_id);
-                
+                $item = $inventoryModel->findById((int) $item_id);
+
                 if ($item) {
                     // Validate quantity is positive
-                    $quantity = (int)$quantity;
+                    $quantity = (int) $quantity;
                     if ($quantity <= 0) {
                         $message = 'Quantity must be greater than 0.';
                         $message_type = 'error';
@@ -42,7 +42,7 @@ class DoctorRequestController
                         // Create request in database
                         $requestData = [
                             'doctor_id' => $_SESSION['user_id'],
-                            'item_id' => (int)$item_id,
+                            'item_id' => (int) $item_id,
                             'quantity' => $quantity,
                             'patient_id' => trim($patient_id),
                             'patient_name' => trim($patient_name),
@@ -50,15 +50,59 @@ class DoctorRequestController
                             'status' => $item['controlled'] ? 'Pending' : 'Approved',
                             'priority' => $item['controlled'] ? 'high' : 'normal'
                         ];
-                        
+
                         if ($requestModel->create($requestData)) {
+                            // Check for anomalies using ML
+                            global $mlService;
+                            if ($mlService) {
+                                $requestId = $conn->insert_id;
+                                $anomalyCheck = $mlService->detectAnomaly([
+                                    'request_id' => $requestId,
+                                    'item_id' => (int) $item_id,
+                                    'quantity' => $quantity,
+                                    'doctor_id' => $_SESSION['user_id']
+                                ]);
+
+                                // Store anomaly if detected
+                                if ($anomalyCheck['is_anomaly'] && $anomalyCheck['score'] > 0.5) {
+                                    $stmt = $conn->prepare(
+                                        "INSERT INTO ml_anomalies (request_id, item_id, anomaly_type, anomaly_score, description) 
+                                         VALUES (?, ?, ?, ?, ?)"
+                                    );
+                                    $anomalyType = 'unusual_quantity';
+                                    $description = implode('; ', $anomalyCheck['reasons'] ?? []);
+                                    $cleanItemId = (int) $item_id;
+                                    $stmt->bind_param(
+                                        'iisds',
+                                        $requestId,
+                                        $cleanItemId,
+                                        $anomalyType,
+                                        $anomalyCheck['score'],
+                                        $description
+                                    );
+                                    $stmt->execute();
+                                    $stmt->close();
+
+                                    // Create notification for admin
+                                    global $notificationModel;
+                                    if ($notificationModel) {
+                                        $notificationModel->create([
+                                            'type' => 'anomaly',
+                                            'title' => 'Anomaly Detected',
+                                            'message' => "Unusual request detected: {$item['name']} x{$quantity} by " . getCurrentUser()['name'],
+                                            'priority' => 'high'
+                                        ]);
+                                    }
+                                }
+                            }
+
                             // Log activity
                             $activityLogModel->create(
                                 $_SESSION['user_id'],
                                 "Requested {$item['name']} (Quantity: {$quantity})",
                                 $requestData['status']
                             );
-                            
+
                             if ($item['controlled']) {
                                 $message = 'Controlled medicine request submitted for approval.';
                                 $message_type = 'warning';
@@ -66,7 +110,7 @@ class DoctorRequestController
                                 $message = 'Item request submitted successfully!';
                                 $message_type = 'success';
                             }
-                            
+
                             // Redirect to prevent form resubmission
                             header('Location: ' . getBaseUrl() . 'routes/doctor_requests.php?success=1');
                             exit();
